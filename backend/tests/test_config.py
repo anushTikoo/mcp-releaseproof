@@ -13,6 +13,8 @@ def test_default_settings():
     assert settings.VULTR_INFERENCE_API_KEY is None
     assert settings.VULTR_INFERENCE_MODEL == "qwen3.8-flash-next"
     assert settings.VULTR_INFERENCE_MAX_TOKENS == 2500
+    assert settings.GITHUB_API_BASE_URL == "https://api.github.com"
+    assert settings.GITHUB_TOKEN is None
 
 
 def test_cors_origins_parsing():
@@ -34,11 +36,13 @@ def test_safe_dict_redaction():
         VULTR_INFERENCE_API_KEY="vultr-secret-key-12345",
         DATABASE_URL="postgresql://user:password@localhost:5432/db",
         WORKER_SHARED_SECRET="super-secret-worker-token",
+        GITHUB_TOKEN="ghp_secrettoken12345",
     )
     safe = settings.safe_dict()
     assert safe["VULTR_INFERENCE_API_KEY"] == "********"
     assert safe["DATABASE_URL"] == "********"
     assert safe["WORKER_SHARED_SECRET"] == "********"
+    assert safe["GITHUB_TOKEN"] == "********"
     # Ensure unmasked non-sensitive values are retained
     assert safe["APP_PORT"] == 8000
 

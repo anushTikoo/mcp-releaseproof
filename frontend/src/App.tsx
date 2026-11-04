@@ -1,5 +1,7 @@
 import React from "react";
 import { HealthStatus } from "./components/HealthStatus";
+import { GitHubComparator } from "./components/GitHubComparator";
+import { MCPServerInspector } from "./components/MCPServerInspector";
 import { TestPlanGenerator } from "./components/TestPlanGenerator";
 import "./App.css";
 
@@ -17,12 +19,16 @@ export const App: React.FC = () => {
       <main className="main-content">
         <HealthStatus />
 
+        <GitHubComparator />
+
+        <MCPServerInspector />
+
         <TestPlanGenerator />
 
         <section className="info-card">
           <h4>Platform Status & Milestone Tracker</h4>
           <p>
-            Established clean local foundation and Vultr Serverless Inference planning integration.
+            Established clean local foundation, Vultr Serverless Inference planning, GitHub commit comparison, and static MCP server tool/schema extraction.
           </p>
           <ul className="phase-list">
             <li className="phase-item">
@@ -35,7 +41,10 @@ export const App: React.FC = () => {
               <span className="check-icon">✓</span> Phase 2: Defensive prompt fencing & strict Pydantic TestPlan validation
             </li>
             <li className="phase-item">
-              <span className="check-icon">✓</span> Phase 2: Model fallback detection & error containment
+              <span className="check-icon">✓</span> Phase 3: GitHub repository validation, ref resolution & version comparison
+            </li>
+            <li className="phase-item">
+              <span className="check-icon">✓</span> Phase 4: Static MCP server discovery, tool/schema extraction & version diffing
             </li>
           </ul>
         </section>
@@ -45,4 +54,3 @@ export const App: React.FC = () => {
 };
 
 export default App;
-

@@ -47,6 +47,16 @@ class Settings(BaseSettings):
         description="Configurable maximum completion token budget for Vultr inference",
     )
 
+    # GitHub Integration
+    GITHUB_API_BASE_URL: str = Field(
+        default="https://api.github.com",
+        description="Base URL for GitHub REST API",
+    )
+    GITHUB_TOKEN: Optional[str] = Field(
+        default=None,
+        description="Optional GitHub personal access token for higher rate limits",
+    )
+
     # Database (Deferred to Phase 2+)
     DATABASE_URL: Optional[str] = Field(
         default=None, description="PostgreSQL connection string"
@@ -101,6 +111,7 @@ class Settings(BaseSettings):
             "WORKER_SHARED_SECRET",
             "DATABASE_URL",
             "REDIS_URL",
+            "GITHUB_TOKEN",
         }
         data = self.model_dump()
         for key in sensitive_keys:
