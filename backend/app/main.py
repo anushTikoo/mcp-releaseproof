@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app import __version__
 from app.api.health import get_health, router as health_router
+from app.api.inference import router as inference_router
 from app.config import get_settings
 
 
@@ -28,6 +29,7 @@ def create_app() -> FastAPI:
 
     # API routes (prefixed with /api per docs/API_CONTRACT.md)
     app.include_router(health_router, prefix="/api")
+    app.include_router(inference_router, prefix="/api")
 
     # Root health probe alias (/health)
     app.add_api_route("/health", get_health, methods=["GET"], tags=["health"])

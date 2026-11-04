@@ -4,13 +4,15 @@ from app.config import Settings
 
 
 def test_default_settings():
-    settings = Settings()
+    settings = Settings(_env_file=None)
     assert settings.APP_ENV == "development"
     assert settings.APP_PORT == 8000
     assert "http://localhost:5173" in settings.CORS_ORIGINS
     assert settings.DATABASE_URL is None
     assert settings.REDIS_URL is None
     assert settings.VULTR_INFERENCE_API_KEY is None
+    assert settings.VULTR_INFERENCE_MODEL == "qwen3.8-flash-next"
+    assert settings.VULTR_INFERENCE_MAX_TOKENS == 2500
 
 
 def test_cors_origins_parsing():

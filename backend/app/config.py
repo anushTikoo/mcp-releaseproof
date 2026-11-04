@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     """
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=(".env", "backend/.env"),
         env_file_encoding="utf-8",
         extra="ignore",
     )
@@ -40,7 +40,11 @@ class Settings(BaseSettings):
         default=None, description="Vultr Serverless Inference API Key"
     )
     VULTR_INFERENCE_MODEL: Optional[str] = Field(
-        default=None, description="Selected model ID from Vultr catalogue"
+        default="qwen3.8-flash-next", description="Selected model ID from Vultr catalogue"
+    )
+    VULTR_INFERENCE_MAX_TOKENS: int = Field(
+        default=2500,
+        description="Configurable maximum completion token budget for Vultr inference",
     )
 
     # Database (Deferred to Phase 2+)
