@@ -38,18 +38,18 @@ const MOCK_GENERATION_SUCCESS = {
 };
 
 describe("TestPlanGenerator Component", () => {
-  const originalFetch = global.fetch;
+  const originalFetch = globalThis.fetch;
 
   beforeEach(() => {
     vi.restoreAllMocks();
   });
 
   afterEach(() => {
-    global.fetch = originalFetch;
+    globalThis.fetch = originalFetch;
   });
 
   it("fetches and displays configuration status on mount", async () => {
-    global.fetch = vi.fn().mockImplementation((url: string) => {
+    globalThis.fetch = vi.fn().mockImplementation((url: string) => {
       if (url.includes("/inference/status")) {
         return Promise.resolve({
           ok: true,
@@ -69,7 +69,7 @@ describe("TestPlanGenerator Component", () => {
   });
 
   it("generates and renders test plan upon successful submission", async () => {
-    global.fetch = vi.fn().mockImplementation((url: string) => {
+    globalThis.fetch = vi.fn().mockImplementation((url: string) => {
       if (url.includes("/inference/status")) {
         return Promise.resolve({
           ok: true,
@@ -106,7 +106,7 @@ describe("TestPlanGenerator Component", () => {
   });
 
   it("displays error banner when generation API fails", async () => {
-    global.fetch = vi.fn().mockImplementation((url: string) => {
+    globalThis.fetch = vi.fn().mockImplementation((url: string) => {
       if (url.includes("/inference/status")) {
         return Promise.resolve({
           ok: true,
@@ -148,7 +148,7 @@ describe("TestPlanGenerator Component", () => {
   });
 
   it("displays clear truncated error message when TOKEN_LIMIT_EXCEEDED occurs", async () => {
-    global.fetch = vi.fn().mockImplementation((url: string) => {
+    globalThis.fetch = vi.fn().mockImplementation((url: string) => {
       if (url.includes("/inference/status")) {
         return Promise.resolve({
           ok: true,
@@ -193,7 +193,7 @@ describe("TestPlanGenerator Component", () => {
   });
 
   it("displays distinct error message for empty model responses", async () => {
-    global.fetch = vi.fn().mockImplementation((url: string) => {
+    globalThis.fetch = vi.fn().mockImplementation((url: string) => {
       if (url.includes("/inference/status")) {
         return Promise.resolve({
           ok: true,
@@ -230,7 +230,7 @@ describe("TestPlanGenerator Component", () => {
   });
 
   it("displays distinct error message for JSON parsing failures", async () => {
-    global.fetch = vi.fn().mockImplementation((url: string) => {
+    globalThis.fetch = vi.fn().mockImplementation((url: string) => {
       if (url.includes("/inference/status")) {
         return Promise.resolve({
           ok: true,
@@ -267,7 +267,7 @@ describe("TestPlanGenerator Component", () => {
   });
 
   it("displays distinct error message for Pydantic schema validation failures", async () => {
-    global.fetch = vi.fn().mockImplementation((url: string) => {
+    globalThis.fetch = vi.fn().mockImplementation((url: string) => {
       if (url.includes("/inference/status")) {
         return Promise.resolve({
           ok: true,
@@ -304,7 +304,7 @@ describe("TestPlanGenerator Component", () => {
   });
 
   it("displays distinct error message for upstream HTTP errors", async () => {
-    global.fetch = vi.fn().mockImplementation((url: string) => {
+    globalThis.fetch = vi.fn().mockImplementation((url: string) => {
       if (url.includes("/inference/status")) {
         return Promise.resolve({
           ok: true,

@@ -3,18 +3,18 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { HealthStatus } from "./HealthStatus";
 
 describe("HealthStatus component", () => {
-  const originalFetch = global.fetch;
+  const originalFetch = globalThis.fetch;
 
   beforeEach(() => {
     vi.restoreAllMocks();
   });
 
   afterEach(() => {
-    global.fetch = originalFetch;
+    globalThis.fetch = originalFetch;
   });
 
   it("renders success state when backend health check succeeds", async () => {
-    global.fetch = vi.fn().mockResolvedValue({
+    globalThis.fetch = vi.fn().mockResolvedValue({
       ok: true,
       status: 200,
       json: async () => ({
@@ -37,7 +37,7 @@ describe("HealthStatus component", () => {
   });
 
   it("renders error state when backend health check fails", async () => {
-    global.fetch = vi.fn().mockRejectedValue(new Error("Failed to fetch"));
+    globalThis.fetch = vi.fn().mockRejectedValue(new Error("Failed to fetch"));
 
     render(<HealthStatus />);
 
@@ -61,7 +61,7 @@ describe("HealthStatus component", () => {
         timestamp: "2026-11-04T12:00:00Z",
       }),
     });
-    global.fetch = fetchMock;
+    globalThis.fetch = fetchMock;
 
     render(<HealthStatus />);
 
