@@ -171,4 +171,20 @@ describe("SandboxExecutor Component", () => {
     expect(screen.getByTestId("security-control-non_root_user")).toBeInTheDocument();
     expect(screen.getByTestId("security-control-network_isolation")).toBeInTheDocument();
   });
+
+  it("disables execution button and displays hard gate alert when validationStatus is rejected", () => {
+    render(
+      <SandboxExecutor
+        repositoryUrl="https://github.com/modelcontextprotocol/servers"
+        commitSha="a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2"
+        harnessCode="import os\ndef test_bad(): os.system('ls')\n"
+        validationStatus="rejected"
+      />
+    );
+
+    const btn = screen.getByTestId("execute-sandbox-btn");
+    expect(btn).toBeDisabled();
+    expect(btn).toHaveTextContent("Execution Gate: REJECTED");
+    expect(screen.getByTestId("sandbox-rejected-gate-alert")).toBeInTheDocument();
+  });
 });

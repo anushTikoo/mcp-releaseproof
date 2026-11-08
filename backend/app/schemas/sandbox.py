@@ -5,6 +5,8 @@ import re
 from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, Field, field_validator
 
+from app.schemas.inference import DiscoveredToolInput, TestPlan
+
 
 class ExecutionLifecycleState(str, Enum):
     """Explicit lifecycle stages of a sandbox execution job."""
@@ -127,6 +129,14 @@ class SandboxExecutionRequest(BaseModel):
         ge=16,
         le=256,
         description="Maximum process PID budget ceiling (default: 64)",
+    )
+    tools: Optional[List[DiscoveredToolInput]] = Field(
+        default=None,
+        description="Optional discovered MCP tools for full schema validation gate",
+    )
+    test_plan: Optional[TestPlan] = Field(
+        default=None,
+        description="Optional structured test plan for scenario validation gate",
     )
 
     @field_validator("server_entrypoint")

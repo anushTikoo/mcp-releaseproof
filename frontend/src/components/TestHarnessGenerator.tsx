@@ -672,6 +672,8 @@ export const TestHarnessGenerator: React.FC<TestHarnessGeneratorProps> = ({
               refName={refLabel}
               harnessCode={activeCode}
               serverEntrypoint="server.py"
+              discoveredTools={discoveredTools}
+              validationStatus={manualValidation?.status || generationResult?.status}
             />
           )}
         </div>

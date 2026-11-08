@@ -494,6 +494,13 @@ class _SecurityASTVisitor(ast.NodeVisitor):
                 )
                 continue
 
+            if sym_name == "ToolErrorResult" or (mod_name.startswith("mcp") and sym_name in ("ToolErrorResult", "ToolError")):
+                self.security_valid = False
+                self.rejection_reasons.append(
+                    f"Prohibited import of unavailable symbol '{sym_name}' from '{mod_name}' at line {node.lineno}. "
+                    "Use 'from mcp.types import CallToolResult, TextContent' and check 'CallToolResult.isError'."
+                )
+
             if (sym_name.startswith("_") and sym_name not in ALLOWED_DUNDERS) or sym_name == "pytest_plugins":
                 self.security_valid = False
                 self.rejection_reasons.append(
@@ -534,6 +541,12 @@ class _SecurityASTVisitor(ast.NodeVisitor):
     def visit_Name(self, node: ast.Name) -> None:
         # Catch bare identifier references to prohibited builtins, escapes, and registered aliases
         name = node.id
+        if name in ("ToolErrorResult", "ToolError"):
+            self.security_valid = False
+            self.rejection_reasons.append(
+                f"Prohibited reference to unavailable symbol '{name}' at line {node.lineno}. "
+                "Use 'CallToolResult.isError' and result content instead."
+            )
         if (
             name in PROHIBITED_CALLS
             or name in PROHIBITED_ATTRS

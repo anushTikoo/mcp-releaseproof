@@ -13,7 +13,7 @@ def test_docker_driver_build_run_args_enforces_mandatory_isolation_flags():
     config = ContainerConfig(
         image="mcp-releaseproof-runner:latest",
         user="10001:10001",
-        command=["python", "-m", "pytest", "-q", "/workspace/test_harness.py"],
+        command=["python", "-m", "pytest", "-q", "-p", "no:cacheprovider", "/workspace/test_harness.py"],
         network_mode="none",
         read_only_rootfs=True,
         cap_drop=["ALL"],

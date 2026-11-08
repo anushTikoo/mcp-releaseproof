@@ -737,6 +737,7 @@ export interface SandboxExecutionRequest {
   memory_limit_mb?: number;
   cpu_limit?: number;
   pids_limit?: number;
+  tools?: DiscoveredToolInput[];
 }
 
 export interface SandboxExecutionResult {

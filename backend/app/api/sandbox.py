@@ -32,12 +32,27 @@ async def execute_harness(
     service: SandboxService = Depends(get_sandbox_service),
 ) -> SandboxExecutionResult:
     """Dispatch a validated test harness to the isolated Vultr Compute sandbox."""
-    # Pre-flight static screening (best-effort filter, NOT a security boundary)
-    preflight = _validator.validate(code=request.harness_code)
+    # Hard execution gate: a harness with static verdict REJECTED must never be submitted
+    preflight = _validator.validate(code=request.harness_code, tools=request.tools, test_plan=request.test_plan)
     if not preflight.syntax_valid:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=f"Pre-flight harness validation rejected invalid syntax: {preflight.rejection_reasons}",
+            detail=f"Execution gate rejected syntax-invalid harness: {preflight.rejection_reasons}",
+        )
+    if not preflight.security_valid:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"Execution gate rejected security-invalid harness: {preflight.rejection_reasons}",
+        )
+    if not preflight.structure_valid:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"Execution gate rejected structure-invalid harness: {preflight.rejection_reasons}",
+        )
+    if request.tools and not preflight.is_valid:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"Execution gate rejected statically invalid harness: {preflight.rejection_reasons}",
         )
 
     try:

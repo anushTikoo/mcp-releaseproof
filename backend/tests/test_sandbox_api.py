@@ -16,9 +16,16 @@ VALID_REQ = {
 
 @pytest.fixture
 def client():
-    app = create_app()
-    with TestClient(app) as c:
-        yield c
+    from app.config import get_settings
+    settings = get_settings()
+    orig_mode = settings.SANDBOX_MODE
+    settings.SANDBOX_MODE = "mock"
+    try:
+        app = create_app()
+        with TestClient(app) as c:
+            yield c
+    finally:
+        settings.SANDBOX_MODE = orig_mode
 
 
 def test_api_get_sandbox_capabilities(client):

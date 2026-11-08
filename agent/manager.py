@@ -386,6 +386,27 @@ class SandboxLifecycleManager:
             result.end_time = datetime.now(timezone.utc).isoformat()
             return result
 
+        # Hard execution gate: static verdict REJECTED must never be executed by sandbox agent
+        from backend.app.services.harness_validator import HarnessValidator
+        ast_validator = HarnessValidator()
+        preflight = ast_validator.validate(code=request.harness_code, tools=request.tools, test_plan=request.test_plan)
+        if not preflight.syntax_valid or not preflight.security_valid:
+            result.lifecycle_status = ExecutionLifecycleState.FAILED
+            result.error_code = "STATIC_VALIDATION_REJECTED"
+            result.error_message = f"Agent execution gate rejected harness: {preflight.rejection_reasons}"
+            result.verification_verdict = VerificationVerdict.SECURITY_VIOLATION
+            result.cleanup_status = CleanupStatus.VERIFIED_CLEAN
+            result.end_time = datetime.now(timezone.utc).isoformat()
+            return result
+        if request.tools and not preflight.is_valid:
+            result.lifecycle_status = ExecutionLifecycleState.FAILED
+            result.error_code = "STATIC_VALIDATION_REJECTED"
+            result.error_message = f"Agent execution gate rejected statically invalid harness: {preflight.rejection_reasons}"
+            result.verification_verdict = VerificationVerdict.SECURITY_VIOLATION
+            result.cleanup_status = CleanupStatus.VERIFIED_CLEAN
+            result.end_time = datetime.now(timezone.utc).isoformat()
+            return result
+
         # Enforce workspace root containment against path traversal
         real_root = os.path.realpath(self.settings.SANDBOX_WORKSPACE_ROOT)
         workspace_path = os.path.realpath(os.path.join(real_root, job_id))
@@ -418,7 +439,7 @@ class SandboxLifecycleManager:
             container_config = ContainerConfig(
                 image=self.settings.SANDBOX_BASE_IMAGE,
                 user=self.settings.SANDBOX_CONTAINER_USER,
-                command=["python", "-m", "pytest", "-q", "/workspace/test_harness.py"],
+                command=["python", "-m", "pytest", "-q", "-p", "no:cacheprovider", "/workspace/test_harness.py"],
                 network_mode="none",
                 read_only_rootfs=True,
                 cap_drop=["ALL"],

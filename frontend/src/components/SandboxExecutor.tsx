@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import {
+  DiscoveredToolInput,
   executeHarnessInSandbox,
   SandboxExecutionResult,
   SecurityControlItem,
@@ -11,6 +12,8 @@ interface SandboxExecutorProps {
   refName?: string;
   harnessCode: string;
   serverEntrypoint?: string;
+  discoveredTools?: DiscoveredToolInput[] | null;
+  validationStatus?: "success" | "rejected" | string;
 }
 
 export const SandboxExecutor: React.FC<SandboxExecutorProps> = ({
@@ -19,13 +22,22 @@ export const SandboxExecutor: React.FC<SandboxExecutorProps> = ({
   refName,
   harnessCode,
   serverEntrypoint = "server.py",
+  discoveredTools,
+  validationStatus,
 }) => {
   const [isRunning, setIsRunning] = useState<boolean>(false);
   const [executionResult, setExecutionResult] = useState<SandboxExecutionResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"stdout" | "stderr" | "security">("stdout");
 
+  const isRejected = validationStatus === "rejected";
+
   const handleExecute = async () => {
+    if (isRejected) {
+      setError("Execution gate blocked: Harness static validation verdict is REJECTED. Fix validation errors before executing in sandbox.");
+      return;
+    }
+
     setIsRunning(true);
     setError(null);
 
@@ -40,6 +52,7 @@ export const SandboxExecutor: React.FC<SandboxExecutorProps> = ({
         memory_limit_mb: 512,
         cpu_limit: 1.0,
         pids_limit: 64,
+        tools: discoveredTools || undefined,
       });
       setExecutionResult(result);
     } catch (err: unknown) {
@@ -86,12 +99,20 @@ export const SandboxExecutor: React.FC<SandboxExecutorProps> = ({
         <button
           className="btn btn-primary btn-execute"
           onClick={handleExecute}
-          disabled={isRunning || !harnessCode.trim()}
+          disabled={isRunning || !harnessCode.trim() || isRejected}
           data-testid="execute-sandbox-btn"
+          title={isRejected ? "Static validation REJECTED. Harness cannot be submitted to sandbox." : undefined}
         >
-          {isRunning ? "Executing in Sandbox..." : "Execute in Sandbox"}
+          {isRunning ? "Executing in Sandbox..." : isRejected ? "Execution Gate: REJECTED" : "Execute in Sandbox"}
         </button>
       </div>
+
+      {isRejected && (
+        <div className="alert alert-warning" data-testid="sandbox-rejected-gate-alert">
+          <strong>Execution Gate Active:</strong> This harness has static validation verdict <code>REJECTED</code>.
+          Harnesses with validation or security failures cannot be executed in the sandbox.
+        </div>
+      )}
 
       {error && (
         <div className="alert alert-danger" data-testid="sandbox-error-alert">

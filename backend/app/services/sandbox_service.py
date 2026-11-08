@@ -14,6 +14,7 @@ from app.schemas.sandbox import (
     SandboxExecutionRequest,
     SandboxExecutionResult,
 )
+from app.services.harness_validator import HarnessValidator
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +24,7 @@ class SandboxService:
 
     def __init__(self):
         self.settings = get_settings()
+        self._validator = HarnessValidator()
         # Default mock manager for local development and unit tests
         self._mock_driver = MockSandboxExecutionDriver()
         self._mock_manager = SandboxLifecycleManager(driver=self._mock_driver)
@@ -42,6 +44,17 @@ class SandboxService:
 
     async def execute_harness(self, request: SandboxExecutionRequest) -> SandboxExecutionResult:
         """Execute harness via the configured sandbox mode (agent RPC or mock)."""
+        # Hard execution gate: static verdict REJECTED must never be submitted
+        preflight = self._validator.validate(code=request.harness_code, tools=request.tools, test_plan=request.test_plan)
+        if not preflight.syntax_valid:
+            raise ValueError(f"Execution gate rejected syntax-invalid harness: {preflight.rejection_reasons}")
+        if not preflight.security_valid:
+            raise ValueError(f"Execution gate rejected security-invalid harness: {preflight.rejection_reasons}")
+        if not preflight.structure_valid:
+            raise ValueError(f"Execution gate rejected structure-invalid harness: {preflight.rejection_reasons}")
+        if request.tools and not preflight.is_valid:
+            raise ValueError(f"Execution gate rejected statically invalid harness: {preflight.rejection_reasons}")
+
         mode = self.settings.SANDBOX_MODE.lower()
 
         if mode == "agent":

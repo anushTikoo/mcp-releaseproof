@@ -25,5 +25,5 @@ RUN chown -R 10001:10001 /workspace
 # Switch to unprivileged non-root user
 USER 10001:10001
 
-# Entrypoint default command
-CMD ["python", "-m", "pytest", "-q", "/workspace/test_harness.py"]
+# Entrypoint default command (disable cacheprovider for read-only workspace)
+CMD ["python", "-m", "pytest", "-q", "-p", "no:cacheprovider", "/workspace/test_harness.py"]
