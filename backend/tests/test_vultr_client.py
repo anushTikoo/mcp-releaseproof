@@ -618,3 +618,66 @@ async def test_missing_usage_metadata():
         assert res["usage"] == {}
         assert isinstance(res["plan"], TestPlan)
 
+
+@pytest.mark.asyncio
+async def test_generate_test_harness_success():
+    client = VultrClient(api_key="valid-key")
+    harness_payload = {
+        "harness_code": "import pytest\n\n@pytest.mark.asyncio\nasync def test_file():\n    pass\n",
+        "scenarios_covered": ["scenario-read-existing"],
+        "tools_tested": ["read_file"],
+        "summary": "Verified read file",
+    }
+    mock_resp = MagicMock(spec=httpx.Response)
+    mock_resp.status_code = 200
+    mock_resp.json.return_value = {
+        "model": "qwen3.8-flash-next",
+        "choices": [
+            {
+                "message": {"content": json.dumps(harness_payload)},
+                "finish_reason": "stop",
+            }
+        ],
+        "usage": {"total_tokens": 150},
+    }
+
+    test_plan = TestPlan.model_validate(VALID_PLAN_DICT)
+    with patch("httpx.AsyncClient.post", return_value=mock_resp):
+        res = await client.generate_test_harness(
+            repository_url="https://github.com/example/mcp-server",
+            commit_sha="a1b2c3d4e5f67890123456789012345678901234",
+            tools=SAMPLE_TOOLS,
+            test_plan=test_plan,
+        )
+        assert res["status"] == "success"
+        assert res["model"] == "qwen3.8-flash-next"
+        assert res["payload"].harness_code == harness_payload["harness_code"]
+        assert "read_file" in res["payload"].tools_tested
+
+
+@pytest.mark.asyncio
+async def test_generate_test_harness_token_limit_exceeded():
+    client = VultrClient(api_key="valid-key")
+    mock_resp = MagicMock(spec=httpx.Response)
+    mock_resp.status_code = 200
+    mock_resp.json.return_value = {
+        "model": "qwen3.8-flash-next",
+        "choices": [
+            {
+                "message": {"content": "partial code"},
+                "finish_reason": "length",
+            }
+        ],
+    }
+
+    test_plan = TestPlan.model_validate(VALID_PLAN_DICT)
+    with patch("httpx.AsyncClient.post", return_value=mock_resp):
+        with pytest.raises(VultrInferenceError) as exc_info:
+            await client.generate_test_harness(
+                repository_url="https://github.com/example/mcp-server",
+                commit_sha="a1b2c3d4e5f67890123456789012345678901234",
+                tools=SAMPLE_TOOLS,
+                test_plan=test_plan,
+            )
+        assert exc_info.value.error_code == "TOKEN_LIMIT_EXCEEDED"
+

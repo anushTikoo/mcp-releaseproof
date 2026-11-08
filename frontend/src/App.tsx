@@ -1,11 +1,40 @@
-import React from "react";
+import React, { useState } from "react";
 import { HealthStatus } from "./components/HealthStatus";
 import { GitHubComparator } from "./components/GitHubComparator";
 import { MCPServerInspector } from "./components/MCPServerInspector";
 import { TestPlanGenerator } from "./components/TestPlanGenerator";
+import { TestHarnessGenerator } from "./components/TestHarnessGenerator";
+import { DiscoveredToolInput, ExtractedTool, TestPlan } from "./api/client";
 import "./App.css";
 
 export const App: React.FC = () => {
+  const [activeRepoUrl, setActiveRepoUrl] = useState<string>(
+    "https://github.com/example/filesystem-mcp-server"
+  );
+  const [activeCommitSha] = useState<string>(
+    "a1b2c3d4e5f67890123456789012345678901234"
+  );
+  const [activeRef] = useState<string>("v1.0.0");
+  const [discoveredTools, setDiscoveredTools] = useState<DiscoveredToolInput[] | null>(
+    null
+  );
+  const [generatedPlan, setGeneratedPlan] = useState<TestPlan | null>(null);
+
+  const handleToolsExtracted = (tools: ExtractedTool[], repoUrl: string) => {
+    setActiveRepoUrl(repoUrl);
+    const converted: DiscoveredToolInput[] = tools.map((t) => ({
+      tool_name: t.name,
+      description: t.description || "",
+      input_schema: t.input_schema || {},
+    }));
+    setDiscoveredTools(converted);
+  };
+
+  const handlePlanGenerated = (plan: TestPlan, repoUrl: string) => {
+    setActiveRepoUrl(repoUrl);
+    setGeneratedPlan(plan);
+  };
+
   return (
     <div className="app-container">
       <header className="app-header">
@@ -21,14 +50,26 @@ export const App: React.FC = () => {
 
         <GitHubComparator />
 
-        <MCPServerInspector />
+        <MCPServerInspector onToolsExtracted={handleToolsExtracted} />
 
-        <TestPlanGenerator />
+        <TestPlanGenerator
+          initialTools={discoveredTools}
+          initialRepoUrl={activeRepoUrl}
+          onPlanGenerated={handlePlanGenerated}
+        />
+
+        <TestHarnessGenerator
+          discoveredTools={discoveredTools}
+          testPlan={generatedPlan}
+          repositoryUrl={activeRepoUrl}
+          commitSha={activeCommitSha}
+          refLabel={activeRef}
+        />
 
         <section className="info-card">
           <h4>Platform Status & Milestone Tracker</h4>
           <p>
-            Established clean local foundation, Vultr Serverless Inference planning, GitHub commit comparison, and static MCP server tool/schema extraction.
+            Established clean local foundation, Vultr Serverless Inference planning, GitHub commit comparison, static MCP server tool/schema extraction, and AI test harness generation with AST security validation.
           </p>
           <ul className="phase-list">
             <li className="phase-item">
@@ -45,6 +86,9 @@ export const App: React.FC = () => {
             </li>
             <li className="phase-item">
               <span className="check-icon">✓</span> Phase 4: Static MCP server discovery, tool/schema extraction & version diffing
+            </li>
+            <li className="phase-item">
+              <span className="check-icon">✓</span> Phase 5: AI-generated executable test harness & static AST security validation
             </li>
           </ul>
         </section>

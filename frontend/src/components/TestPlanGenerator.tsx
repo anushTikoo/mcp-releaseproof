@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
 import {
+  DiscoveredToolInput,
   fetchInferenceStatus,
   generateTestPlan,
   GenerationResponse,
   InferenceApiError,
   InferenceConfigStatus,
+  TestPlan,
 } from "../api/client";
 
 interface ErrorDisplayInfo {
@@ -13,6 +15,12 @@ interface ErrorDisplayInfo {
   code?: string;
   status?: number;
   suggestion?: string;
+}
+
+export interface TestPlanGeneratorProps {
+  initialTools?: DiscoveredToolInput[] | null;
+  initialRepoUrl?: string;
+  onPlanGenerated?: (plan: TestPlan, repoUrl: string) => void;
 }
 
 const DEFAULT_SAMPLE_TOOLS = [
@@ -40,16 +48,36 @@ const DEFAULT_SAMPLE_TOOLS = [
   },
 ];
 
-export const TestPlanGenerator: React.FC = () => {
+export const TestPlanGenerator: React.FC<TestPlanGeneratorProps> = ({
+  initialTools,
+  initialRepoUrl,
+  onPlanGenerated,
+}) => {
   const [configStatus, setConfigStatus] = useState<InferenceConfigStatus | null>(null);
   const [selectedModel, setSelectedModel] = useState<string>("qwen3.8-flash-next");
-  const [repoUrl, setRepoUrl] = useState<string>("https://github.com/example/filesystem-mcp-server");
+  const [repoUrl, setRepoUrl] = useState<string>(
+    initialRepoUrl || "https://github.com/example/filesystem-mcp-server"
+  );
   const [toolsJson, setToolsJson] = useState<string>(
-    JSON.stringify(DEFAULT_SAMPLE_TOOLS, null, 2)
+    initialTools && initialTools.length > 0
+      ? JSON.stringify(initialTools, null, 2)
+      : JSON.stringify(DEFAULT_SAMPLE_TOOLS, null, 2)
   );
   const [loading, setLoading] = useState<boolean>(false);
   const [errorDisplay, setErrorDisplay] = useState<ErrorDisplayInfo | null>(null);
   const [result, setResult] = useState<GenerationResponse | null>(null);
+
+  useEffect(() => {
+    if (initialTools && initialTools.length > 0) {
+      setToolsJson(JSON.stringify(initialTools, null, 2));
+    }
+  }, [initialTools]);
+
+  useEffect(() => {
+    if (initialRepoUrl) {
+      setRepoUrl(initialRepoUrl);
+    }
+  }, [initialRepoUrl]);
 
   useEffect(() => {
     fetchInferenceStatus()
@@ -94,6 +122,9 @@ export const TestPlanGenerator: React.FC = () => {
         model_id: selectedModel,
       });
       setResult(response);
+      if (onPlanGenerated && response.plan) {
+        onPlanGenerated(response.plan, repoUrl);
+      }
     } catch (err: unknown) {
       if (err instanceof InferenceApiError) {
         if (err.code === "TOKEN_LIMIT_EXCEEDED") {

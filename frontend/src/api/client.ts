@@ -309,7 +309,6 @@ export async function fetchHealth(
 
   return response.json();
 }
-
 export async function fetchInferenceStatus(
   signal?: AbortSignal
 ): Promise<InferenceConfigStatus> {
@@ -330,7 +329,6 @@ export async function fetchInferenceStatus(
 
   return response.json();
 }
-
 export async function resolveGitHubRefs(
   request: ResolveRefsRequest,
   signal?: AbortSignal
@@ -369,7 +367,6 @@ export async function resolveGitHubRefs(
 
   return response.json();
 }
-
 export async function compareGitHubCommits(
   request: CompareCommitsRequest,
   signal?: AbortSignal
@@ -408,7 +405,6 @@ export async function compareGitHubCommits(
 
   return response.json();
 }
-
 export async function discoverMCPServer(
   request: DiscoverMCPRequest,
   signal?: AbortSignal
@@ -447,7 +443,6 @@ export async function discoverMCPServer(
 
   return response.json();
 }
-
 export async function compareMCPTools(
   request: CompareMCPToolsRequest,
   signal?: AbortSignal
@@ -486,7 +481,6 @@ export async function compareMCPTools(
 
   return response.json();
 }
-
 export async function generateTestPlan(
   request: GenerationRequest,
   signal?: AbortSignal
@@ -543,6 +537,136 @@ export async function generateTestPlan(
       errorCode,
       upstreamStatus
     );
+  }
+
+  return response.json();
+}
+export interface HarnessMetadata {
+  test_count: number;
+  scenarios_covered: string[];
+  tools_tested: string[];
+  framework: string;
+  summary: string;
+}
+
+export interface HarnessValidationResult {
+  is_valid: boolean;
+  syntax_valid: boolean;
+  security_valid: boolean;
+  structure_valid: boolean;
+  schema_valid: boolean;
+  rejection_reasons: string[];
+  warnings: string[];
+  identified_imports: string[];
+  identified_tool_calls: string[];
+  identified_scenarios?: string[];
+  ast_node_count: number;
+  line_count: number;
+}
+
+export interface GenerateHarnessRequest {
+  repository_url: string;
+  commit_sha: string;
+  ref?: string;
+  server_name?: string;
+  tools: DiscoveredToolInput[];
+  test_plan: TestPlan;
+  model_id?: string;
+  max_tokens?: number;
+}
+
+export interface GenerateHarnessResponse {
+  status: string; // 'success' | 'rejected'
+  repository_url: string;
+  commit_sha: string;
+  model: string;
+  harness_code: string;
+  metadata: HarnessMetadata;
+  validation: HarnessValidationResult;
+  inventory_origin?: string;
+  trust_boundary_notice?: string;
+  usage?: Record<string, unknown>;
+  duration_ms: number;
+}
+
+export interface ValidateHarnessRequest {
+  harness_code: string;
+  tools?: DiscoveredToolInput[];
+  test_plan?: TestPlan;
+}
+
+export interface ValidateHarnessResponse {
+  status: string; // 'valid' | 'rejected'
+  validation: HarnessValidationResult;
+  inventory_origin?: string;
+  trust_boundary_notice?: string;
+}
+
+export async function generateTestHarness(
+  request: GenerateHarnessRequest,
+  signal?: AbortSignal
+): Promise<GenerateHarnessResponse> {
+  const url = `${API_BASE_URL.replace(/\/+$/, "")}/harness/generate`;
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(request),
+    signal,
+  });
+
+  if (!response.ok) {
+    let errorCode = "UNKNOWN_ERROR";
+    let errorMessage = response.statusText;
+
+    try {
+      const errJson = await response.json();
+      if (errJson && errJson.detail) {
+        if (typeof errJson.detail === "object" && errJson.detail !== null) {
+          errorCode = errJson.detail.code || errorCode;
+          errorMessage = errJson.detail.message || errorMessage;
+        } else if (typeof errJson.detail === "string") {
+          errorMessage = errJson.detail;
+          if (errJson.detail.includes("TOKEN_LIMIT_EXCEEDED")) {
+            errorCode = "TOKEN_LIMIT_EXCEEDED";
+          }
+        }
+      }
+    } catch {
+      // Use default status text
+    }
+
+    throw new InferenceApiError(response.status, errorMessage, errorCode);
+  }
+
+  return response.json();
+}
+export async function validateTestHarness(
+  request: ValidateHarnessRequest,
+  signal?: AbortSignal
+): Promise<ValidateHarnessResponse> {
+  const url = `${API_BASE_URL.replace(/\/+$/, "")}/harness/validate`;
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(request),
+    signal,
+  });
+
+  if (!response.ok) {
+    let errorMessage = response.statusText;
+    try {
+      const errJson = await response.json();
+      if (errJson && errJson.detail) {
+        errorMessage = typeof errJson.detail === "string" ? errJson.detail : JSON.stringify(errJson.detail);
+      }
+    } catch {
+      // default
+    }
+    throw new InferenceApiError(response.status, errorMessage, "VALIDATION_ERROR");
   }
 
   return response.json();
