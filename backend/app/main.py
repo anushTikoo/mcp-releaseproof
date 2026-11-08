@@ -11,6 +11,7 @@ from app.api.harness import router as harness_router
 from app.api.health import get_health, router as health_router
 from app.api.inference import router as inference_router
 from app.api.mcp import router as mcp_router
+from app.api.sandbox import router as sandbox_router
 from app.config import get_settings
 from app.schemas.harness import MAX_HARNESS_REQUEST_BODY_BYTES
 
@@ -39,7 +40,7 @@ class RequestBodyLimitMiddleware:
             return
 
         path = scope.get("path", "")
-        if not path.startswith(self.path_prefix):
+        if not (path.startswith("/api/harness") or path.startswith("/api/sandbox")):
             await self.app(scope, receive, send)
             return
 
@@ -129,6 +130,7 @@ def create_app() -> FastAPI:
     app.include_router(github_router, prefix="/api")
     app.include_router(mcp_router, prefix="/api")
     app.include_router(harness_router, prefix="/api")
+    app.include_router(sandbox_router, prefix="/api")
 
     # Root health probe alias (/health)
     app.add_api_route("/health", get_health, methods=["GET"], tags=["health"])

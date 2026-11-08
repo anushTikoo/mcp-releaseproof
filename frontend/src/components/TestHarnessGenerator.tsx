@@ -8,6 +8,7 @@ import {
   validateTestHarness,
   ValidateHarnessResponse,
 } from "../api/client";
+import { SandboxExecutor } from "./SandboxExecutor";
 
 interface ErrorDisplayInfo {
   title: string;
@@ -662,6 +663,17 @@ export const TestHarnessGenerator: React.FC<TestHarnessGeneratorProps> = ({
               spellCheck={false}
             />
           </div>
+
+          {/* Phase 6: Vultr Compute Sandbox Execution Action & Evidence */}
+          {activeCode.trim() && (
+            <SandboxExecutor
+              repositoryUrl={repoUrl}
+              commitSha={commitSha}
+              refName={refLabel}
+              harnessCode={activeCode}
+              serverEntrypoint="server.py"
+            />
+          )}
         </div>
       )}
     </section>

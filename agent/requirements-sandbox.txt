@@ -1,0 +1,10 @@
+# Pinned dependencies for MCP ReleaseProof sandbox runner container
+# No network egress is permitted at runtime; all dependencies must be pre-installed.
+mcp==1.2.1
+pydantic==2.10.6
+fastmcp==0.4.1
+pytest==8.3.4
+pytest-asyncio==0.25.3
+httpx==0.28.1
+anyio==4.8.0
+typing_extensions==4.12.2

@@ -67,9 +67,35 @@ class Settings(BaseSettings):
         default=None, description="Redis connection string"
     )
 
-    # Worker Authentication (Deferred to Phase 2+)
+    # Worker & Sandbox Agent Configuration
     WORKER_SHARED_SECRET: Optional[str] = Field(
         default=None, description="Shared secret for worker authentication"
+    )
+    SANDBOX_AGENT_URL: Optional[str] = Field(
+        default="http://127.0.0.1:8001",
+        description="URL of Sandbox Execution Agent (use HTTPS or private VPC IP in production)",
+    )
+    SANDBOX_AGENT_CA_CERT_PATH: Optional[str] = Field(
+        default=None,
+        description="Path to custom CA certificate for verifying Sandbox Agent TLS certificate",
+    )
+    SANDBOX_AGENT_CLIENT_CERT_PATH: Optional[str] = Field(
+        default=None,
+        description="Path to client certificate file for agent mTLS authentication",
+    )
+    SANDBOX_AGENT_CLIENT_KEY_PATH: Optional[str] = Field(
+        default=None,
+        description="Path to client private key file for agent mTLS authentication",
+    )
+    SANDBOX_MODE: str = Field(
+        default="mock",
+        description="Sandbox execution mode: mock (isolated dev/tests) or agent (remote Vultr worker)",
+    )
+    SANDBOX_DEFAULT_TIMEOUT_SECONDS: int = Field(
+        default=60, description="Default sandbox execution timeout in seconds"
+    )
+    SANDBOX_MAX_TIMEOUT_SECONDS: int = Field(
+        default=300, description="Maximum sandbox execution timeout ceiling in seconds"
     )
 
     # Artifact Storage

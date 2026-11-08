@@ -671,3 +671,192 @@ export async function validateTestHarness(
 
   return response.json();
 }
+
+// =========================================================================
+// Phase 6: Vultr Compute Sandbox Execution Types & Functions
+// =========================================================================
+
+export type ExecutionLifecycleState =
+  | "QUEUED"
+  | "PREPARING"
+  | "RUNNING"
+  | "COMPLETED"
+  | "FAILED"
+  | "TIMED_OUT"
+  | "CLEANUP_FAILED";
+
+export type TestVerdict =
+  | "PASSED"
+  | "FAILED"
+  | "TIMED_OUT"
+  | "ERROR"
+  | "NOT_RUN";
+
+export type SecurityEnforcementStatus =
+  | "VERIFIED"
+  | "INCOMPLETE"
+  | "VIOLATED";
+
+export type CleanupStatus =
+  | "VERIFIED_CLEAN"
+  | "CLEANUP_FAILED"
+  | "PENDING";
+
+export type VerificationVerdict =
+  | "VERIFIED_SUCCESS"
+  | "REGRESSION_DETECTED"
+  | "SECURITY_VIOLATION"
+  | "EXECUTION_TIMEOUT"
+  | "INFRASTRUCTURE_FAILURE"
+  | "UNSUPPORTED_DEPENDENCIES";
+
+export interface SecurityControlItem {
+  control_name: string;
+  requested: string;
+  observed?: string | null;
+  status: SecurityEnforcementStatus;
+  details?: string | null;
+}
+
+export interface SecurityEnforcementReport {
+  overall_status: SecurityEnforcementStatus;
+  controls: SecurityControlItem[];
+  verified_at?: string | null;
+  summary: string;
+}
+
+export interface SandboxExecutionRequest {
+  repository_url: string;
+  commit_sha: string;
+  ref?: string;
+  harness_code: string;
+  server_entrypoint?: string;
+  server_args?: string[];
+  environment_variables?: Record<string, string>;
+  timeout_seconds?: number;
+  memory_limit_mb?: number;
+  cpu_limit?: number;
+  pids_limit?: number;
+}
+
+export interface SandboxExecutionResult {
+  job_id: string;
+  repository_url: string;
+  commit_sha: string;
+  lifecycle_status: ExecutionLifecycleState;
+  test_verdict: TestVerdict;
+  security_status: SecurityEnforcementStatus;
+  cleanup_status: CleanupStatus;
+  verification_verdict: VerificationVerdict;
+  exit_code?: number | null;
+  stdout: string;
+  stderr: string;
+  duration_ms: number;
+  start_time?: string | null;
+  end_time?: string | null;
+  security_report: SecurityEnforcementReport;
+  cleanup_details?: string | null;
+  error_code?: string | null;
+  error_message?: string | null;
+}
+
+export interface SandboxCapabilitiesResponse {
+  prewarmed_dependencies: string[];
+  runtime_network_mode: string;
+  mcp_transport: string;
+  default_timeout_seconds: number;
+  max_timeout_seconds: number;
+  default_memory_mb: number;
+  max_memory_mb: number;
+  enforced_security_features: string[];
+}
+
+export async function fetchSandboxCapabilities(
+  signal?: AbortSignal
+): Promise<SandboxCapabilitiesResponse> {
+  const url = `${API_BASE_URL.replace(/\/+$/, "")}/sandbox/capabilities`;
+  const response = await fetch(url, {
+    method: "GET",
+    headers: {
+      Accept: "application/json",
+    },
+    signal,
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch sandbox capabilities (${response.status})`);
+  }
+
+  return response.json();
+}
+
+export async function executeHarnessInSandbox(
+  request: SandboxExecutionRequest,
+  signal?: AbortSignal
+): Promise<SandboxExecutionResult> {
+  const url = `${API_BASE_URL.replace(/\/+$/, "")}/sandbox/execute`;
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    body: JSON.stringify(request),
+    signal,
+  });
+
+  if (!response.ok) {
+    let errorMessage = response.statusText;
+    try {
+      const errJson = await response.json();
+      if (errJson && errJson.detail) {
+        errorMessage = typeof errJson.detail === "string" ? errJson.detail : JSON.stringify(errJson.detail);
+      }
+    } catch {
+      // default
+    }
+    throw new Error(`Sandbox execution failed (${response.status}): ${errorMessage}`);
+  }
+
+  return response.json();
+}
+
+export async function fetchSandboxJobStatus(
+  jobId: string,
+  signal?: AbortSignal
+): Promise<SandboxExecutionResult> {
+  const url = `${API_BASE_URL.replace(/\/+$/, "")}/sandbox/jobs/${encodeURIComponent(jobId)}`;
+  const response = await fetch(url, {
+    method: "GET",
+    headers: {
+      Accept: "application/json",
+    },
+    signal,
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch job status (${response.status})`);
+  }
+
+  return response.json();
+}
+
+export async function abortSandboxJob(
+  jobId: string,
+  signal?: AbortSignal
+): Promise<SandboxExecutionResult> {
+  const url = `${API_BASE_URL.replace(/\/+$/, "")}/sandbox/jobs/${encodeURIComponent(jobId)}/abort`;
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+    },
+    signal,
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to abort sandbox job (${response.status})`);
+  }
+
+  return response.json();
+}

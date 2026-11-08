@@ -1984,3 +1984,221 @@
   color: #f87171;
   border-color: #f87171;
 }
+
+/* Phase 6 Sandbox Execution & Verification Styles */
+
+.sandbox-executor-card {
+  margin-top: 1.5rem;
+  background: #0b1120;
+  border: 1px solid #1e293b;
+  border-radius: 0.5rem;
+  padding: 1.25rem;
+}
+
+.sandbox-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.btn-execute {
+  background: #3b82f6;
+  color: #fff;
+  border: none;
+  font-weight: 600;
+  padding: 0.5rem 1.25rem;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.btn-execute:hover:not(:disabled) {
+  background: #2563eb;
+}
+
+.btn-execute:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.verification-banner {
+  padding: 1rem 1.25rem;
+  border-radius: 0.375rem;
+  margin-bottom: 1.25rem;
+  border-left: 4px solid;
+}
+
+.banner-success {
+  background: rgba(16, 185, 129, 0.1);
+  border-color: #10b981;
+  color: #a7f3d0;
+}
+
+.banner-danger {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: #ef4444;
+  color: #fecaca;
+}
+
+.banner-warning {
+  background: rgba(245, 158, 11, 0.1);
+  border-color: #f59e0b;
+  color: #fde68a;
+}
+
+.banner-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-bottom: 0.35rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.banner-details p {
+  margin: 0.25rem 0 0 0;
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
+.status-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.status-item {
+  background: #111827;
+  border: 1px solid #1f2937;
+  border-radius: 0.375rem;
+  padding: 0.65rem 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.status-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.status-value {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.2rem 0.55rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  width: fit-content;
+}
+
+.badge-success {
+  background: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+}
+
+.badge-danger {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+}
+
+.badge-warning {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+}
+
+.badge-neutral {
+  background: rgba(100, 116, 139, 0.2);
+  color: #cbd5e1;
+}
+
+.sandbox-tabs {
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 1px solid #1e293b;
+  margin-bottom: 1rem;
+}
+
+.sandbox-tabs .tab-btn {
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-muted);
+  padding: 0.5rem 0.85rem;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.15s ease;
+}
+
+.sandbox-tabs .tab-btn.active {
+  color: #38bdf8;
+  border-bottom-color: #38bdf8;
+}
+
+.log-block {
+  background: #030712;
+  border: 1px solid #1f2937;
+  border-radius: 0.375rem;
+  padding: 0.85rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: #e5e7eb;
+  max-height: 300px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.security-audit-panel {
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 0.375rem;
+  padding: 1rem;
+}
+
+.audit-summary {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  margin-top: 0;
+  margin-bottom: 0.85rem;
+}
+
+.security-audit-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+
+.security-audit-table th,
+.security-audit-table td {
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid #1e293b;
+}
+
+.security-audit-table th {
+  color: #94a3b8;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+}
+
+.control-details {
+  font-size: 0.7rem;
+  color: #64748b;
+  margin-top: 0.15rem;
+}
